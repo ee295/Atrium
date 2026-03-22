@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;cursor:none!important}
+html{height:100%}
+:root{
+  --radius:14px;
+  --font-serif:'Instrument Serif',Georgia,serif;
+  --font-mono:'Geist Mono',monospace;
+  --tr:.3s cubic-bezier(.4,0,.2,1);
+  --accent:#c9a96e;--accent-rgb:201,169,110;
+  --accent2:#7eb8a4;--accent3:#c97e9a;
+}
+[data-theme="dark"]{
+  --bg:#0e0e10;--surface:#18181c;--surface2:#1f1f25;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.13);
+  --text:#ede9e0;--text2:rgba(237,233,224,.52);--text3:rgba(237,233,224,.25);
+  --shadow:rgba(0,0,0,.5);
+  --deco-stroke:rgba(201,169,110,.15);
+  --deco-fill:rgba(201,169,110,.06);
+  --deco-dot:rgba(201,169,110,.3);
+  --grid-color:rgba(255,255,255,.055);
+  --pt-color:180,160,120;
+}
+[data-theme="light"]{
+  --bg:#f4f1ec;--surface:#ffffff;--surface2:#f8f5f0;
+  --border:rgba(0,0,0,.07);--border2:rgba(0,0,0,.14);
+  --text:#1a1916;--text2:rgba(26,25,22,.52);--text3:rgba(26,25,22,.25);
+  --shadow:rgba(0,0,0,.12);
+  --deco-stroke:rgba(140,90,40,.3);
+  --deco-fill:rgba(140,90,40,.09);
+  --deco-dot:rgba(140,90,40,.4);
+  --grid-color:rgba(0,0,0,.09);
+  --pt-color:80,55,30;
+}
+body{
+  min-height:100vh;background:var(--bg);color:var(--text);
+  font-family:var(--font-serif);
+  transition:background var(--tr),color var(--tr);
+  overflow-x:hidden;
+}
+
+/* ── CURSOR ── */
+#cur{position:fixed;width:9px;height:9px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;left:0;top:0}
+#cur-ring{position:fixed;width:28px;height:28px;border:1.5px solid rgba(var(--accent-rgb),.45);border-radius:50%;pointer-events:none;z-index:9998;left:0;top:0}
+
+/* ── BG CANVAS ── */
+#bg-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+/* ── DECO ── */
+.deco{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.deco-el{position:absolute;transition:border-color .4s,background .4s}
+.sh-ring{border-radius:50%;border:1px solid var(--deco-stroke)}
+.sh-dot{border-radius:50%;background:var(--deco-dot)}
+/* Pointy-top hexagon (corner at top & bottom) */
+.sh-hex{clip-path:polygon(50% 0%,93.3% 25%,93.3% 75%,50% 100%,6.7% 75%,6.7% 25%);background:var(--deco-fill)}
+.sh-hex-out{position:relative}
+.sh-hex-out::before{content:'';position:absolute;inset:0;clip-path:polygon(50% 0%,93.3% 25%,93.3% 75%,50% 100%,6.7% 75%,6.7% 25%);background:var(--deco-stroke)}
+.sh-hex-out::after{content:'';position:absolute;inset:2px;clip-path:polygon(50% 0%,93.3% 25%,93.3% 75%,50% 100%,6.7% 75%,6.7% 25%);background:var(--bg);transition:background .4s}
+.sh-tri{clip-path:polygon(50% 0%,0% 100%,100% 100%);background:var(--deco-fill)}
+.sh-tri-out{position:relative}
+.sh-tri-out::before{content:'';position:absolute;inset:0;clip-path:polygon(50% 0%,0% 100%,100% 100%);background:var(--deco-stroke)}
+.sh-tri-out::after{content:'';position:absolute;inset:0 0 2px;clip-path:polygon(50% 4%,2% 98%,98% 98%);background:var(--bg);transition:background .4s}
+.sh-sq{background:none;border:1px solid var(--deco-stroke)}
+.sh-cross::before,.sh-cross::after{content:'';position:absolute;background:var(--deco-stroke);transition:background .4s}
+.sh-cross::before{width:100%;height:1px;top:50%;transform:translateY(-50%)}
+.sh-cross::after{width:1px;height:100%;left:50%;transform:translateX(-50%)}
+.sh-line{height:1px;background:linear-gradient(90deg,transparent,var(--deco-stroke),transparent)}
+@keyframes fA{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+@keyframes fB{0%,100%{transform:translateY(0)}50%{transform:translateY(12px)}}
+@keyframes fC{0%,100%{transform:translateY(0) rotate(45deg)}50%{transform:translateY(-9px) rotate(52deg)}}
+@keyframes fD{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+
+/* ── LAYOUT ── */
+.page{position:relative;z-index:1;max-width:1060px;margin:0 auto;padding:0 36px}
+header{padding:34px 0 0;display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:20px}
+.hdr-left{display:flex;gap:8px}
+.hdr-right{display:flex;justify-content:flex-end;align-items:flex-start;gap:8px}
+.icon-btn{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:15px;transition:color .2s,border-color .2s,background .2s,transform .2s}
+.icon-btn:hover{color:var(--accent);border-color:var(--border2);background:var(--surface2);transform:scale(1.08)}
+
+/* ── CLOCK ── */
+.clock-block{text-align:center;animation:fadeUp .6s ease both}
+.clock{font-family:var(--font-mono);font-size:clamp(44px,6vw,80px);font-weight:300;letter-spacing:-2px;line-height:1;color:var(--text)}
+.clock .sep{color:var(--accent)}
+.date-line{font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-top:8px}
+
+/* ── WEATHER ── */
+.weather-wrap{display:flex;align-items:center;gap:6px;animation:fadeUp .7s ease both}
+.weather-pill{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:9px 16px 9px 12px;text-decoration:none;transition:border-color .2s,background .2s,transform .2s}
+.weather-pill:hover{border-color:var(--border2);background:var(--surface2);transform:scale(1.03)}
+.w-icon{font-size:22px;line-height:1}
+.w-temp{font-family:var(--font-mono);font-size:17px;font-weight:300;color:var(--text);line-height:1}
+.w-desc{font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-top:2px;letter-spacing:.04em}
+.w-edit{background:none;border:none;color:var(--text3);font-size:13px;padding:4px;transition:color .2s,transform .2s}
+.w-edit:hover{color:var(--accent);transform:scale(1.18)}
+
+/* ── CENTER ── */
+.center-section{text-align:center;padding:22px 0 0;animation:fadeUp .8s ease both}
+.greeting{font-size:clamp(24px,3.5vw,40px);font-style:italic;color:var(--text2);letter-spacing:-.3px}
+.search-wrap{position:relative;max-width:560px;margin:18px auto 0}
+.search-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:14px 54px 14px 24px;font-size:14px;font-family:var(--font-mono);color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s,background .2s;letter-spacing:.02em}
+.search-input::placeholder{color:var(--text3)}
+.search-input:focus{border-color:rgba(var(--accent-rgb),.45);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.07);background:var(--surface2)}
+.search-go{position:absolute;right:7px;top:50%;transform:translateY(-50%);background:var(--accent);border:none;border-radius:50%;width:34px;height:34px;color:var(--bg);font-size:16px;display:flex;align-items:center;justify-content:center;transition:opacity .2s,transform .2s}
+.search-go:hover{opacity:.85;transform:translateY(-50%) scale(1.1)}
+.quick-links{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-top:14px;animation:fadeUp .9s ease both}
+.quick-link{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 13px;font-size:12px;font-family:var(--font-mono);color:var(--text2);text-decoration:none;position:relative;transition:color .18s,border-color .18s,background .18s,transform .18s}
+.quick-link:hover{color:var(--text);border-color:var(--border2);background:var(--surface2);transform:translateY(-2px)}
+.ql-del{display:none;position:absolute;top:-7px;right:-7px;background:var(--accent3);color:#fff;border:none;border-radius:50%;width:16px;height:16px;font-size:9px;align-items:center;justify-content:center;font-family:var(--font-mono)}
+
+/* ── DIVIDER ── */
+.divider{display:flex;align-items:center;gap:14px;padding:28px 0;animation:fadeUp .95s ease both}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.ddot{width:5px;height:5px;border-radius:50%;background:rgba(var(--accent-rgb),.5);box-shadow:0 0 8px rgba(var(--accent-rgb),.4)}
+
+/* ── WIDGET LAYOUT ── */
+.widget-area{padding-bottom:40px;animation:fadeUp 1s ease both}
+.widget-cols{display:flex;gap:20px;align-items:flex-start}
+.widget-col{display:flex;flex-direction:column;gap:16px;flex:1;min-width:0}
+
+/* DRAG HANDLE */
+.widget{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:visible;transition:background var(--tr),border-color var(--tr),box-shadow .2s;margin-bottom:0}
+.widget::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.4),transparent);border-radius:var(--radius) var(--radius) 0 0}
+.widget.hidden{display:none}
+.widget.drag-over{border-color:rgba(var(--accent-rgb),.5);box-shadow:0 0 0 2px rgba(var(--accent-rgb),.15)}
+.widget.dragging{opacity:.5;transform:scale(.98)}
+/* drag mode — body class toggled by arrange mode */
+body.arrange-mode .widget{border-style:dashed;border-color:rgba(var(--accent-rgb),.2)}
+body.arrange-mode .widget:hover{border-color:rgba(var(--accent-rgb),.4)}
+body.arrange-mode .widget-drag-handle{color:var(--accent);opacity:1}
+body.arrange-mode .widget.dragging{opacity:.45;transform:scale(.97)}
+body.arrange-mode .widget.drag-over{border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 0 2px rgba(var(--accent-rgb),.18)}
+
+.widget-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px}
+/* Handle: hidden by default, shown in arrange mode */
+.widget-drag-handle{color:var(--text3);font-size:14px;letter-spacing:.1em;padding:2px 6px;transition:color .15s,opacity .2s;flex-shrink:0;opacity:0;user-select:none}
+.widget-drag-handle:hover{color:var(--accent)}
+
+/* Arrange mode floating banner */
+#arrange-banner{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid rgba(var(--accent-rgb),.45);
+  border-radius:50px;padding:9px 10px 9px 18px;
+  font-family:var(--font-mono);font-size:12px;color:var(--accent);
+  display:none;align-items:center;gap:10px;z-index:50;
+  box-shadow:0 8px 32px var(--shadow);
+  animation:fadeUp .25s ease;
+  white-space:nowrap;
+}
+#arrange-banner button{background:rgba(var(--accent-rgb),.15);border:1px solid rgba(var(--accent-rgb),.35);border-radius:20px;padding:5px 14px;font-family:var(--font-mono);font-size:11px;color:var(--accent);transition:background .15s;letter-spacing:.06em}
+#arrange-banner button:hover{background:rgba(var(--accent-rgb),.28)}
+body.arrange-mode #arrange-banner{display:flex}
+.slabel{font-family:var(--font-mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;gap:8px;flex:1}
+.slabel-acts{display:flex;gap:6px;margin-left:auto}
+.sact{background:none;border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:9px;font-family:var(--font-mono);color:var(--text3);letter-spacing:.1em;transition:color .15s,border-color .15s}
+.sact:hover,.sact.on{color:var(--accent);border-color:rgba(var(--accent-rgb),.4)}
+
+/* ── BOOKSHELF ── */
+.bookshelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px;min-height:120px}
+.book-card{display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;text-decoration:none;animation:bookIn .3s ease}
+@keyframes bookIn{from{opacity:0;transform:scale(.88) translateY(8px)}to{opacity:1;transform:none}}
+.book-cover{width:100%;aspect-ratio:2/3;border-radius:8px;background:var(--surface2);border:1px solid var(--border);transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.book-card:hover .book-cover{transform:translateY(-6px) rotate(-1.5deg) scale(1.03);box-shadow:6px 12px 32px var(--shadow)}
+.book-cover img{width:100%;height:100%;object-fit:cover}
+.book-ph{font-size:26px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:linear-gradient(135deg,var(--surface2),var(--surface))}
+.book-spine{position:absolute;left:0;top:0;bottom:0;width:5px;background:rgba(var(--accent-rgb),.3);border-radius:8px 0 0 8px}
+.book-del{display:none;position:absolute;top:-7px;right:-7px;background:var(--accent3);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:10px;align-items:center;justify-content:center;z-index:2;transition:transform .15s}
+.book-del:hover{transform:scale(1.15)}
+.bookshelf.edit .book-del{display:flex}
+.bookshelf.edit .book-card{animation:wiggle .45s ease infinite alternate}
+@keyframes wiggle{from{transform:rotate(-1.2deg)}to{transform:rotate(1.2deg)}}
+.book-title{font-size:11px;font-family:var(--font-mono);color:var(--text2);text-align:center;line-height:1.35;max-width:100%;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;transition:color .2s}
+.book-card:hover .book-title{color:var(--accent)}
+.book-add{display:flex;flex-direction:column;align-items:center;gap:8px}
+.book-add-cover{width:100%;aspect-ratio:2/3;border-radius:8px;border:1px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text3);background:var(--surface);transition:border-color .2s,color .2s,transform .2s}
+.book-add:hover .book-add-cover{border-color:rgba(var(--accent-rgb),.45);color:var(--accent);transform:translateY(-4px)}
+.book-add-lbl{font-size:11px;font-family:var(--font-mono);color:var(--text3)}
+
+/* ── POMODORO ── */
+.pomo-modes{display:flex;justify-content:center;gap:6px;margin-bottom:10px}
+.pomo-mode{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:10px;font-family:var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--text3);transition:all .15s}
+.pomo-mode:hover{color:var(--text)}
+.pomo-mode.on{background:rgba(var(--accent-rgb),.1);border-color:rgba(var(--accent-rgb),.35);color:var(--accent)}
+.pomo-time{font-family:var(--font-mono);font-size:46px;font-weight:300;letter-spacing:-2px;color:var(--accent);text-align:center;margin:6px 0 12px;line-height:1}
+.pomo-time.rest{color:var(--accent2)}
+.pomo-btns{display:flex;justify-content:center;gap:8px}
+.pomo-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 20px;font-size:12px;font-family:var(--font-mono);color:var(--text);transition:all .15s}
+.pomo-btn:hover{border-color:rgba(var(--accent-rgb),.4);color:var(--accent);transform:translateY(-1px)}
+.pomo-btn.p{background:rgba(var(--accent-rgb),.1);border-color:rgba(var(--accent-rgb),.35);color:var(--accent)}
+.pomo-track{height:3px;background:var(--border);border-radius:3px;margin-top:14px;overflow:hidden}
+.pomo-bar{height:100%;border-radius:3px;background:var(--accent);transition:width 1s linear,background .5s}
+
+/* ── NOTES ── */
+.notes-area{width:100%;background:none;border:none;resize:none;font-family:var(--font-mono);font-size:13px;color:var(--text);outline:none;line-height:1.7;min-height:90px}
+.notes-area::placeholder{color:var(--text3)}
+
+/* ── NEWS ── */
+.news-list{display:flex;flex-direction:column}
+.news-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);text-decoration:none}
+.news-item:last-child{border-bottom:none}
+.news-item:hover .news-title{color:var(--accent)}
+.news-source{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);flex-shrink:0;margin-top:2px;min-width:52px}
+.news-title{font-size:13px;color:var(--text);line-height:1.4;transition:color .2s}
+.news-date{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:2px}
+.news-status{font-family:var(--font-mono);font-size:12px;color:var(--text3);text-align:center;padding:18px 0}
+.news-status.err{color:var(--accent3)}
+
+/* ── WORLD CLOCK ── */
+.wclocks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wclock-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.wclock-city{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.wclock-time{font-family:var(--font-mono);font-size:20px;font-weight:300;color:var(--text);margin-top:2px;letter-spacing:-1px}
+.wclock-date{font-family:var(--font-mono);font-size:9px;color:var(--text3);margin-top:1px}
+
+/* ── CURRENCY ── */
+.currency-list{display:flex;flex-direction:column;gap:6px}
+.currency-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface2);border-radius:8px}
+.currency-pair{font-family:var(--font-mono);font-size:11px;color:var(--text3);letter-spacing:.06em}
+.currency-val{font-family:var(--font-mono);font-size:14px;color:var(--text)}
+
+/* ── COUNTDOWN ── */
+.countdown-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.countdown-item:last-child{border-bottom:none}
+.countdown-name{font-family:var(--font-mono);font-size:11px;color:var(--text2);letter-spacing:.06em}
+.countdown-val{font-family:var(--font-mono);font-size:22px;font-weight:300;color:var(--accent);letter-spacing:-1px}
+.countdown-unit{font-family:var(--font-mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.countdown-right{text-align:right}
+.add-dashed-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:none;border:1px dashed var(--border2);border-radius:8px;padding:9px;font-family:var(--font-mono);font-size:11px;color:var(--text3);margin-top:10px;transition:color .2s,border-color .2s}
+.add-dashed-btn:hover{color:var(--accent);border-color:rgba(var(--accent-rgb),.4)}
+
+
+
+/* ── BOOKMARKS (link list style) ── */
+.bookmark-list{display:flex;flex-direction:column;gap:2px}
+.bookmark-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:8px;text-decoration:none;transition:background .15s}
+.bookmark-item:hover{background:var(--surface2)}
+.bookmark-icon{font-size:14px;flex-shrink:0;width:20px;text-align:center}
+.bookmark-label{font-family:var(--font-mono);font-size:12px;color:var(--text2);transition:color .15s}
+.bookmark-item:hover .bookmark-label{color:var(--accent)}
+.bookmark-url{font-family:var(--font-mono);font-size:10px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+.bookmark-del{display:none;background:none;border:none;color:var(--text3);font-size:11px;margin-left:auto;flex-shrink:0;transition:color .15s}
+.bookmark-del:hover{color:var(--accent3)}
+.bookmark-list.edit .bookmark-del{display:block}
+
+/* ── QUOTE ── */
+.quote-block{padding:6px 0 2px}
+.quote-text{font-size:17px;font-style:italic;color:var(--text2);line-height:1.6;letter-spacing:-.2px}
+.quote-author{font-family:var(--font-mono);font-size:11px;color:var(--text3);margin-top:10px;letter-spacing:.06em}
+.quote-refresh-btn{background:none;border:none;color:var(--text3);font-size:13px;transition:color .2s,transform .35s}
+.quote-refresh-btn:hover{color:var(--accent);transform:rotate(180deg)}
+.cq-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+.cq-text{flex:1;min-width:0}
+.cq-q{font-size:12px;font-style:italic;color:var(--text2);line-height:1.4;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.cq-a{font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:3px}
+.cq-del{background:none;border:none;color:var(--text3);font-size:11px;flex-shrink:0;padding:2px 4px;transition:color .15s;margin-top:1px}
+.cq-del:hover{color:var(--accent3)}
+
+/* ── WIDGET TOGGLE ── */
+.widget-toggles{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.wtoggle{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;transition:border-color .15s}
+.wtoggle.on{border-color:rgba(var(--accent-rgb),.35)}
+.wtoggle-label{font-family:var(--font-mono);font-size:11px;color:var(--text2);letter-spacing:.06em}
+.tog{width:32px;height:18px;background:var(--border2);border-radius:9px;position:relative;transition:background .2s;flex-shrink:0}
+.tog.on{background:rgba(var(--accent-rgb),.5)}
+.tog::after{content:'';position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s}
+.tog.on::after{transform:translateX(14px)}
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:100;display:none;align-items:center;justify-content:center;backdrop-filter:blur(7px)}
+.overlay.open{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.panel{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:28px;width:460px;max-width:94vw;max-height:88vh;overflow-y:auto;animation:panelIn .25s ease;position:relative}
+@keyframes panelIn{from{opacity:0;transform:scale(.94) translateY(14px)}to{opacity:1;transform:none}}
+.panel-title{font-size:20px;font-style:italic;margin-bottom:20px;color:var(--text)}
+.panel-close{position:absolute;top:20px;right:20px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:30px;height:30px;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.panel-close:hover{color:var(--text)}
+.field{margin-bottom:14px}
+.field label{display:block;font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-family:var(--font-mono);font-size:13px;color:var(--text);outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:rgba(var(--accent-rgb),.45)}
+.field input::placeholder,.field textarea::placeholder{color:var(--text3)}
+.field select option{background:var(--surface)}
+.pbtn{width:100%;background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.3);border-radius:10px;padding:12px;font-family:var(--font-mono);font-size:13px;color:var(--accent);transition:all .15s;letter-spacing:.05em;margin-top:4px}
+.pbtn:hover{background:rgba(var(--accent-rgb),.18);transform:translateY(-1px)}
+.pbtn+.pbtn{margin-top:8px}
+.pbtn.ghost{background:none;color:var(--text2);border-color:var(--border)}
+.pbtn.ghost:hover{color:var(--text)}
+.swatch-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.swatch{aspect-ratio:1;border-radius:10px;border:2px solid transparent;transition:all .15s;display:flex;align-items:center;justify-content:center;font-size:11px}
+.swatch.on{border-color:var(--text);transform:scale(1.06)}
+.swatch:hover{transform:scale(1.05)}
+.mode-row{display:flex;gap:8px;margin-bottom:14px}
+.mode-btn{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:var(--font-mono);font-size:12px;color:var(--text2);transition:all .15s;text-align:center}
+.mode-btn.on{border-color:rgba(var(--accent-rgb),.4);color:var(--accent);background:rgba(var(--accent-rgb),.07)}
+.edit-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;max-height:220px;overflow-y:auto}
+.edit-row{display:flex;gap:6px;align-items:center}
+.edit-row .field{margin:0;flex:1}
+.del-btn{background:none;border:1px solid var(--border);border-radius:8px;width:32px;height:32px;color:var(--text3);font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.del-btn:hover{color:var(--accent3);border-color:var(--accent3)}
+.panel-sep{font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin:16px 0 8px;border-top:1px solid var(--border);padding-top:16px}
+.wx-status{font-family:var(--font-mono);font-size:11px;color:var(--text3);text-align:center;margin-top:8px;min-height:16px}
+.wx-status.err{color:var(--accent3)}
+.tag-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tag-chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-family:var(--font-mono);font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px;transition:border-color .15s}
+.tag-chip.sel{border-color:rgba(var(--accent-rgb),.5);color:var(--accent);background:rgba(var(--accent-rgb),.08)}
+.tag-chip:hover{border-color:var(--border2)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@media(max-width:680px){header{grid-template-columns:auto 1fr auto}.widget-cols{flex-direction:column}.page{padding:0 18px}.clock{font-size:38px}}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+</style>
+</head>
+<body>
+<div id="cur"></div>
+<div id="cur-ring"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- DECO SHAPES -->
+<div class="deco">
+  <div class="deco-el sh-ring" style="width:360px;height:360px;top:-100px;right:-80px;animation:fA 9s ease-in-out infinite"></div>
+  <div class="deco-el sh-ring" style="width:200px;height:200px;bottom:80px;left:20px;animation:fB 12s ease-in-out infinite 1.5s"></div>
+  <div class="deco-el sh-ring" style="width:88px;height:88px;top:36%;right:6%;animation:fA 7s ease-in-out infinite 3s"></div>
+  <div class="deco-el sh-hex-out" style="width:56px;height:56px;top:17%;left:7%;animation:fB 10s ease-in-out infinite .5s"></div>
+  <div class="deco-el sh-hex" style="width:34px;height:34px;bottom:26%;right:11%;animation:fA 8s ease-in-out infinite 2s"></div>
+  <div class="deco-el sh-hex-out" style="width:26px;height:26px;top:55%;right:22%;animation:fD 11s ease-in-out infinite 3.5s"></div>
+  <div class="deco-el sh-tri-out" style="width:44px;height:40px;top:64%;left:5%;animation:fD 11s ease-in-out infinite 1s"></div>
+  <div class="deco-el sh-tri" style="width:28px;height:25px;top:11%;right:19%;animation:fB 9s ease-in-out infinite 4s"></div>
+  <div class="deco-el sh-sq" style="width:26px;height:26px;top:77%;right:8%;animation:fC 13s ease-in-out infinite"></div>
+  <div class="deco-el sh-sq" style="width:17px;height:17px;top:46%;left:2%;animation:fC 10s ease-in-out infinite 2s"></div>
+  <div class="deco-el sh-cross" style="width:22px;height:22px;top:28%;left:7%"></div>
+  <div class="deco-el sh-cross" style="width:15px;height:15px;bottom:20%;right:17%"></div>
+  <div class="deco-el sh-dot" style="width:5px;height:5px;top:44%;left:4%"></div>
+  <div class="deco-el sh-dot" style="width:4px;height:4px;bottom:33%;right:5%"></div>
+  <div class="deco-el sh-dot" style="width:6px;height:6px;top:70%;left:20%"></div>
+  <div class="deco-el sh-line" style="width:180px;top:14%;left:-20px;transform:rotate(-18deg)"></div>
+  <div class="deco-el sh-line" style="width:130px;bottom:16%;right:0;transform:rotate(14deg)"></div>
+</div>
+
+<div class="page">
+  <!-- HEADER -->
+  <header>
+    <div class="hdr-left" style="animation:fadeUp .5s ease both">
+      <button class="icon-btn" onclick="openPanel('p-theme')" title="Appearance">◑</button>
+      <button class="icon-btn" onclick="openPanel('p-links')" title="Edit links">⊞</button>
+      <button class="icon-btn" onclick="openPanel('p-widgets')" title="Widgets">⊟</button>
+    </div>
+    <div class="clock-block">
+      <div class="clock" id="clock">00<span class="sep">:</span>00<span class="sep">:</span>00</div>
+      <div class="date-line" id="date-line">—</div>
+    </div>
+    <div class="hdr-right" style="animation:fadeUp .7s ease both">
+      <div class="weather-wrap">
+        <a class="weather-pill" id="w-pill" href="https://www.ilmatieteenlaitos.fi/saa/helsinki">
+          <span id="w-icon" class="w-icon">🌡</span>
+          <div><div id="w-temp" class="w-temp">—</div><div id="w-desc" class="w-desc">Loading…</div></div>
+        </a>
+        <button class="w-edit" onclick="openPanel('p-weather')" title="Change location">✎</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="center-section">
+    <div class="greeting" id="greeting">Good evening.</div>
+    <div class="search-wrap">
+      <input class="search-input" id="srch" type="text" placeholder="Search or enter a URL…" autocomplete="off">
+      <button class="search-go" onclick="doSearch()">→</button>
+    </div>
+    <div class="quick-links" id="ql-bar"></div>
+  </div>
+
+  <div class="divider"><div class="ddot"></div><div class="ddot"></div><div class="ddot"></div></div>
+
+  <!-- WIDGET AREA -->
+  <div class="widget-area">
+    <div class="widget-cols" id="widget-cols">
+      <div class="widget-col" id="col-0"></div>
+      <div class="widget-col" id="col-1"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANELS ══ -->
+<!-- Theme -->
+<div class="overlay" id="p-theme">
+  <div class="panel">
+    <button class="panel-close" onclick="closePanel('p-theme')">✕</button>
+    <div class="panel-title">Appearance</div>
+    <div class="field"><label>Mode</label>
+      <div class="mode-row">
+        <button class="mode-btn on" id="mb-dark" onclick="setMode('dark')">🌙 Dark</button>
+        <button class="mode-btn" id="mb-light" onclick="setMode('light')">☀️ Light</button>
+      </div>
+    </div>
+    <div class="field"><label>Accent Color</label><div class="swatch-grid" id="accent-grid"></div></div>
+    <div class="field"><label>Background Pattern</label><div class="swatch-grid" id="bg-grid"></div></div>
+    <div class="field"><label>Font</label>
+      <select id="font-sel" onchange="setFont(this.value)">
+        <option value="serif">Instrument Serif — classic</option>
+        <option value="mono">Geist Mono — technical</option>
+        <option value="slab">Courier — editorial</option>
+      </select>
+    </div>
+  </div>
+</div>
+<!-- Weather -->
+<div class="overlay" id="p-weather">
+  <div class="panel">
+    <button class="panel-close" onclick="closePanel('p-weather')">✕</button>
+    <div class="panel-title">Weather Location</div>
+    <div class="field"><label>City</label><input type="text" id="wi-city" placeholder="e.g. Helsinki, London, Tokyo"></div>
+    <div class="field"><label>Unit</label>
+      <select id="wi-unit"><option value="C">Celsius (°C)</option><option value="F">Fahrenheit (°F)</option></select>
+    </div>
+    <button class="pbtn" onclick="saveWeather()">Save &amp; Refresh</button>
+    <div class="wx-status" id="wx-status">Powered by Open-Meteo — free, no key needed</div>
+  </div>
+</div>
+<!-- Quick Links -->
+<div class="overlay" id="p-links">
+  <div class="panel">
+    <button class="panel-close" onclick="closePanel('p-links')">✕</button>
+    <div class="panel-title">Quick Links</div>
+    <div class="edit-list" id="ql-list"></div>
+    <button class="pbtn ghost" onclick="addQLRow()">+ Add Link</button>
+    <button class="pbtn" onclick="saveLinks()">Save</button>
+  </div>
+</div>
+<!-- Add Book -->
+<div class="overlay" id="p-book">
+  <div class="panel">
+    <button class="panel-close" onclick="closePanel('p-book')">✕</button>
+    <div class="panel-title">Add to Bookshelf</div>
+    <div class="field"><label>Title</label><input type="text" id="bi-title" placeholder="Mathematics for Engineers"></div>
+    <div class="field"><label>URL / Link</label><input type="text" id="bi-url" placeholder="https://…"></div>
+    <div class="field"><label>Cover Image URL</label><input type="text" id="bi-img" placeholder="https://… (optional)"></div>
+    <div class="field"><label>Emoji (if no image)</label><input type="text" id="bi-emoji" maxlength="4" value="📗"></div>
+    <button class="pbtn" onclick="addBook()">Add Book</button>
+  </div>
+</div>
+<!-- RSS -->
+<div class="overlay" id="p-rss">
+  <div class="panel">
+    <button class="panel-close" onclick="closePanel('p-rss')">✕</button>
+    <div class="panel-title">News Sources</div>
+    <div class="edit-list" id="rss-list"></div>
+    <button class="pbtn ghost" onclick="addRssRow()">+ Add Feed</button>
+    <button class="pbtn" onclick="saveRss()">Save &amp; Refresh</button>
+    <p style="margin-top:10px;font-size:11px;font-family:var(--font-mono);color:var(--text3);line-height:1.6">Via rss2json.com proxy. Paste any RSS/Atom URL.</p>
+  </div>
+</div>
+<!-- Countdown -->
+<div class="overlay" id="p-countdown">
+  <div class="panel">
+    <button class="panel-close" onclick="closePanel('p-countdown')">✕</button>
+    <div class="panel-title">Add Countdown</div>
+    <div class="field"><label>Label</label><input type="text" id="cd-label" placeholder="Summer holiday, Exam…"></div>
+    <div class="field"><label>Target Date</label><input type="date" id="cd-date"></div>
+    <button class="pbtn" onclick="addCountdown()">Add</button>
+  </div>
+</div>
+<!-- Currency Settings -->
+<div class="overlay" id="p-currency">
+  <div class="panel">
+    <button class="panel-close" onclick="closePanel('p-currency')">✕</button>
+    <div class="panel-title">Exchange Rates</div>
+    <div class="field"><label>Base Currency</label>
+      <select id="cur-base" onchange="S.currencyBase=this.value;save();fetchCurrency()">
+        <option value="EUR">EUR — Euro</option>
+        <option value="USD">USD — US Dollar</option>
+        <option value="GBP">GBP — British Pound</option>
+        <option value="SEK">SEK — Swedish Krona</option>
+        <option value="JPY">JPY — Japanese Yen</option>
+      </select>
+    </div>
+    <div class="field"><label>Shown Currencies (select/deselect)</label>
+      <div class="tag-chips" id="currency-chips"></div>
+    </div>
+    <button class="pbtn" onclick="saveCurrency()">Save</button>
+  </div>
+</div>
+<!-- World Clock Settings -->
+<div class="overlay" id="p-worldclock">
+  <div class="panel">
+    <button class="panel-close" onclick="closePanel('p-worldclock')">✕</button>
+    <div class="panel-title">World Clock</div>
+    <div class="edit-list" id="wc-list"></div>
+    <button class="pbtn ghost" onclick="addWcRow()">+ Add City</button>
+    <button class="pbtn" onclick="saveWorldClock()">Save</button>
+    <p style="margin-top:10px;font-size:11px;font-family:var(--font-mono);color:var(--text3);line-height:1.6">Use IANA timezone names, e.g.<br>Europe/Helsinki · America/New_York · Asia/Tokyo</p>
+  </div>
+</div>
+<!-- Add Bookmark -->
+<div class="overlay" id="p-bookmark">
+  <div class="panel">
+    <button class="panel-close" onclick="closePanel('p-bookmark')">✕</button>
+    <div class="panel-title">Add Bookmark</div>
+    <div class="field"><label>Label</label><input type="text" id="bm-label" placeholder="My site"></div>
+    <div class="field"><label>URL</label><input type="text" id="bm-url" placeholder="https://…"></div>
+    <div class="field"><label>Icon (emoji)</label><input type="text" id="bm-icon" placeholder="🔗" maxlength="4" value="🔗"></div>
+    <button class="pbtn" onclick="addBookmark()">Add</button>
+  </div>
+</div>
+<!-- Quotes editor -->
+<div class="overlay" id="p-quotes">
+  <div class="panel" style="width:520px">
+    <button class="panel-close" onclick="closePanel('p-quotes')">✕</button>
+    <div class="panel-title">Quote List</div>
+
+    <div class="field">
+      <label>Paste quotes in bulk</label>
+      <textarea id="quotes-paste" rows="5" placeholder="One quote per line. Two formats accepted:&#10;&#10;&quot;Quote text&quot; — Author&#10;Quote text | Author&#10;&#10;Lines without an author separator are added as-is with no author."></textarea>
+    </div>
+    <button class="pbtn" onclick="importQuotes()" style="margin-bottom:18px">Import pasted quotes</button>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3)">Custom quotes (<span id="custom-quote-count">0</span>)</div>
+      <div style="display:flex;gap:6px">
+        <button class="sact" onclick="clearCustomQuotes()">Clear all</button>
+        <button class="sact" onclick="openAddQuote()">+ Add one</button>
+      </div>
+    </div>
+    <div id="custom-quote-list" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:16px"></div>
+
+    <div id="add-quote-form" style="display:none;padding:12px;background:var(--surface2);border-radius:10px;margin-bottom:12px">
+      <div class="field" style="margin-bottom:8px"><label>Quote</label><textarea id="aq-text" rows="2" placeholder="The quote text…"></textarea></div>
+      <div class="field" style="margin-bottom:8px"><label>Author</label><input type="text" id="aq-author" placeholder="Author name (optional)"></div>
+      <button class="pbtn" onclick="addSingleQuote()">Add</button>
+    </div>
+
+    <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Source pool</div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <div class="wtoggle" id="pool-custom-toggle" style="flex:1" onclick="togglePool('custom')">
+        <span class="wtoggle-label">Custom quotes</span>
+        <div class="tog" id="pool-custom-tog"></div>
+      </div>
+      <div class="wtoggle" id="pool-builtin-toggle" style="flex:1" onclick="togglePool('builtin')">
+        <span class="wtoggle-label">Built-in quotes</span>
+        <div class="tog" id="pool-builtin-tog"></div>
+      </div>
+    </div>
+    <p style="font-family:var(--font-mono);font-size:10px;color:var(--text3);margin-top:6px;line-height:1.6">At least one pool must stay active. The ↻ button draws from active pools.</p>
+  </div>
+</div>
+
+<!-- Widgets panel -->
+<div class="overlay" id="p-widgets">
+  <div class="panel">
+    <button class="panel-close" onclick="closePanel('p-widgets')">✕</button>
+    <div class="panel-title">Widgets</div>
+    <button id="arrange-btn" class="pbtn ghost" onclick="toggleArrangeMode();closePanel('p-widgets')" style="margin-bottom:14px">⠿ Arrange widgets</button>
+    <p style="font-family:var(--font-mono);font-size:11px;color:var(--text3);margin-bottom:14px;line-height:1.6">Toggle visibility below. To reorder, click "Arrange widgets" — then drag the ⠿ handle on each widget.</p>
+    <div class="widget-toggles" id="widget-toggles"></div>
+  </div>
+</div>
+
+<!-- Arrange mode banner -->
+<div id="arrange-banner">
+  <span>⠿ Drag widgets to reorder</span>
+  <button onclick="toggleArrangeMode()">Done</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// CONSTANTS & DEFAULTS
+// ══════════════════════════════════════════════════════════════
+const DEF_LINKS = [
+  {label:'Gmail',url:'https://gmail.com',icon:'✉'},
+  {label:'GitHub',url:'https://github.com',icon:'⌥'},
+  {label:'Notion',url:'https://notion.so',icon:'◫'},
+  {label:'YouTube',url:'https://youtube.com',icon:'▷'},
+  {label:'Reddit',url:'https://reddit.com',icon:'●'},
+  {label:'Claude',url:'https://claude.ai',icon:'◈'},
+];
+const DEF_BOOKS=[{id:1,title:'Linear Algebra',url:'',img:'',emoji:'📘'},{id:2,title:'Calculus Vol. I',url:'',img:'',emoji:'📙'}];
+const DEF_RSS=[{label:'BBC',url:'http://feeds.bbci.co.uk/news/world/rss.xml'},{label:'HN',url:'https://news.ycombinator.com/rss'}];
+const DEF_WC=[{city:'Helsinki',tz:'Europe/Helsinki'},{city:'London',tz:'Europe/London'},{city:'New York',tz:'America/New_York'},{city:'Tokyo',tz:'Asia/Tokyo'}];
+const ALL_CURRENCIES=['USD','EUR','GBP','JPY','SEK','NOK','DKK','CHF','CAD','AUD','CNY','KRW','INR','BRL','RUB','MXN','SGD','HKD','TRY','PLN'];
+const ACCENTS={Gold:{a:'#c9a96e',r:'201,169,110',a2:'#7eb8a4',a3:'#c97e9a'},Blue:{a:'#6e9ac9',r:'110,154,201',a2:'#7e9eb8',a3:'#c97e9a'},Green:{a:'#7ec99a',r:'126,201,154',a2:'#c9a96e',a3:'#c96e8a'},Rose:{a:'#c97e9a',r:'201,126,154',a2:'#c9a96e',a3:'#7eb8a4'},Lavender:{a:'#9a7ec9',r:'154,126,201',a2:'#7eb8c9',a3:'#c9a96e'},Ember:{a:'#c9836e',r:'201,131,110',a2:'#c9c36e',a3:'#7ea4c9'},Mint:{a:'#6ec9b8',r:'110,201,184',a2:'#6ea4c9',a3:'#c96ea0'},Slate:{a:'#8ea8ba',r:'142,168,186',a2:'#a8baae',a3:'#c97e7e'}};
+const BG_OPTS=['Plain','Grid','Dots'];
+const FI_SLUGS={'helsinki':'helsinki','tampere':'tampere','turku':'turku','oulu':'oulu','lahti':'lahti','kuopio':'kuopio','espoo':'espoo','vantaa':'vantaa','rovaniemi':'rovaniemi'};
+const WMO_ICONS={0:'☀',1:'🌤',2:'⛅',3:'☁',45:'🌫',48:'🌫',51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',71:'❄',73:'❄',75:'❄',80:'🌦',81:'🌧',82:'⛈',95:'⛈',99:'⛈'};
+const WMO_DESC={0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Icy fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Showers',81:'Heavy showers',82:'Violent showers',95:'Thunderstorm',99:'Thunderstorm'};
+// Widget definitions — id, label, col (0=left,1=right), order, visible
+const WIDGET_DEFS = [
+  {id:'wid-books',   label:'Bookshelf',      col:0, order:0, vis:true},
+  {id:'wid-worldclock',label:'World Clock',  col:0, order:1, vis:true},
+  {id:'wid-news',    label:'News Feed',      col:0, order:2, vis:true},
+  {id:'wid-bookmarks',label:'Bookmarks',     col:0, order:3, vis:false},
+  {id:'wid-pomo',    label:'Focus Timer',    col:1, order:0, vis:true},
+  {id:'wid-notes',   label:'Quick Notes',    col:1, order:1, vis:true},
+  {id:'wid-countdown',label:'Countdowns',   col:1, order:2, vis:true},
+  {id:'wid-currency',label:'Exchange Rates', col:1, order:3, vis:true},
+
+  {id:'wid-quote',   label:'Daily Quote',    col:1, order:5, vis:true},
+];
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let S = {
+  theme:'dark',accent:'Gold',bg:'Plain',font:'serif',
+  city:'Helsinki',lat:60.1699,lon:24.9384,unit:'C',
+  books:[...DEF_BOOKS],links:[...DEF_LINKS],rss:[...DEF_RSS],
+  worldClocks:[...DEF_WC],notes:'',countdowns:[],
+  currencyBase:'EUR',currencies:['USD','GBP','JPY','SEK','NOK','CHF'],
+  bookmarks:[],quoteIdx:null,
+  customQuotes:[], quotePool:{custom:true, builtin:true},
+  widgetLayout:null,
+};
+
+function save(){localStorage.setItem('sp12',JSON.stringify(S));}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+function init(){
+  try{
+    const sv=JSON.parse(localStorage.getItem('sp12')||'{}');
+    Object.assign(S,sv);
+    if(!S.books?.length) S.books=[...DEF_BOOKS];
+    if(!S.links?.length) S.links=[...DEF_LINKS];
+    if(!S.rss?.length)   S.rss=[...DEF_RSS];
+    if(!S.worldClocks?.length) S.worldClocks=[...DEF_WC];
+    if(!S.countdowns)    S.countdowns=[];
+    if(!S.bookmarks)     S.bookmarks=[];
+    if(!S.customQuotes)  S.customQuotes=[];
+    if(!S.quotePool)     S.quotePool={custom:true,builtin:true};
+    if(!S.currencies)    S.currencies=['USD','GBP','JPY','SEK','NOK','CHF'];
+    if(!S.currencyBase)  S.currencyBase='EUR';
+    if(!S.widgetLayout)  S.widgetLayout=null;
+  }catch(e){}
+
+  applyTheme();
+  buildWidgets();
+  clock(); setInterval(clock,1000);
+  setInterval(updateWorldClocks,1000); updateWorldClocks();
+  renderQL(); fetchWeather(); loadNews(); fetchCurrency(); renderCountdowns(); renderBookmarks(); showQuote();
+  initCanvas(); initCursor();
+
+  document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closePanel(o.id);}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.open').forEach(o=>closePanel(o.id));});
+  document.getElementById('srch').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
+}
+
+// ══════════════════════════════════════════════════════════════
+// WIDGET BUILDER — renders widgets into columns based on layout
+// ══════════════════════════════════════════════════════════════
+function getLayout(){
+  if(S.widgetLayout && S.widgetLayout.length === WIDGET_DEFS.length) return S.widgetLayout;
+  return WIDGET_DEFS.map(d=>({id:d.id,col:d.col,order:d.order,vis:d.vis}));
+}
+
+const WIDGET_HTML = {
+  'wid-books': ()=>`
+    <div class="widget-header">
+      <span class="widget-drag-handle" draggable="false">⠿</span>
+      <div class="slabel">— Bookshelf<div class="slabel-acts"><button class="sact" id="shelf-edit-btn" onclick="toggleShelfEdit()">Edit</button></div></div>
+    </div>
+    <div class="bookshelf" id="bookshelf"></div>`,
+  'wid-worldclock': ()=>`
+    <div class="widget-header">
+      <span class="widget-drag-handle" draggable="false">⠿</span>
+      <div class="slabel">— World Clock<div class="slabel-acts"><button class="sact" onclick="openPanel('p-worldclock')">Edit</button></div></div>
+    </div>
+    <div class="wclocks" id="wclocks"></div>`,
+  'wid-news': ()=>`
+    <div class="widget-header">
+      <span class="widget-drag-handle" draggable="false">⠿</span>
+      <div class="slabel">— News<div class="slabel-acts"><button class="sact" onclick="loadNews()">↻</button><button class="sact" onclick="openPanel('p-rss')">Sources</button></div></div>
+    </div>
+    <div class="news-list" id="news-list"><div class="news-status">Loading…</div></div>`,
+  'wid-pomo': ()=>`
+    <div class="widget-header">
+      <span class="widget-drag-handle" draggable="false">⠿</span>
+      <div class="slabel">— Focus Timer</div>
+    </div>
+    <div class="pomo-modes">
+      <button class="pomo-mode on" id="pm-focus" onclick="setPomoMode('focus')">Focus 25m</button>
+      <button class="pomo-mode" id="pm-short" onclick="setPomoMode('short')">Short 5m</button>
+      <button class="pomo-mode" id="pm-long" onclick="setPomoMode('long')">Long 15m</button>
+    </div>
+    <div class="pomo-time" id="pomo-time">25:00</div>
+    <div class="pomo-btns">
+      <button class="pomo-btn p" id="pomo-start" onclick="pomoToggle()">Start</button>
+      <button class="pomo-btn" onclick="pomoReset()">Reset</button>
+    </div>
+    <div class="pomo-track"><div class="pomo-bar" id="pomo-bar" style="width:100%"></div></div>`,
+  'wid-notes': ()=>`
+    <div class="widget-header">
+      <span class="widget-drag-handle" draggable="false">⠿</span>
+      <div class="slabel">— Quick Notes</div>
+    </div>
+    <textarea class="notes-area" id="notes" placeholder="Anything…" rows="5"></textarea>`,
+  'wid-countdown': ()=>`
+    <div class="widget-header">
+      <span class="widget-drag-handle" draggable="false">⠿</span>
+      <div class="slabel">— Countdowns</div>
+    </div>
+    <div id="countdowns-wrap"></div>
+    <button class="add-dashed-btn" onclick="openPanel('p-countdown')">+ Add Countdown</button>`,
+  'wid-currency': ()=>`
+    <div class="widget-header">
+      <span class="widget-drag-handle" draggable="false">⠿</span>
+      <div class="slabel">— Rates <span id="currency-base-label" style="opacity:.5;font-size:9px"></span><div class="slabel-acts"><button class="sact" onclick="openPanel('p-currency')">Edit</button></div></div>
+    </div>
+    <div class="currency-list" id="currency-list"><div class="news-status">Loading…</div></div>`,
+  'wid-bookmarks': ()=>`
+    <div class="widget-header">
+      <span class="widget-drag-handle" draggable="false">⠿</span>
+      <div class="slabel">— Bookmarks<div class="slabel-acts"><button class="sact" id="bm-edit-btn" onclick="toggleBmEdit()">Edit</button><button class="sact" onclick="openPanel('p-bookmark')">+ Add</button></div></div>
+    </div>
+    <div class="bookmark-list" id="bookmark-list"></div>`,
+  'wid-quote': ()=>`
+    <div class="widget-header">
+      <span class="widget-drag-handle" draggable="false">⠿</span>
+      <div class="slabel">— Daily Quote<div class="slabel-acts"><button class="sact" onclick="showQuote(true)">↻</button><button class="sact" onclick="openPanel('p-quotes')">Edit</button></div></div>
+    </div>
+    <div class="quote-block">
+      <div class="quote-text" id="quote-text"></div>
+      <div class="quote-author" id="quote-author"></div>
+    </div>`,
+};
+
+function buildWidgets(){
+  const layout=getLayout();
+  const col0=document.getElementById('col-0');
+  const col1=document.getElementById('col-1');
+  col0.innerHTML=''; col1.innerHTML='';
+
+  // Sort by col then order
+  const sorted=[...layout].sort((a,b)=>a.col!==b.col?a.col-b.col:a.order-b.order);
+  sorted.forEach(item=>{
+    const def=WIDGET_DEFS.find(d=>d.id===item.id);
+    if(!def) return;
+    const htmlFn=WIDGET_HTML[item.id];
+    if(!htmlFn) return;
+    const div=document.createElement('div');
+    div.className='widget'+(item.vis?'':' hidden');
+    div.dataset.wid=item.id;
+    div.innerHTML=htmlFn();
+    div.setAttribute('draggable','true');
+    (item.col===0?col0:col1).appendChild(div);
+  });
+
+  initDragDrop();
+
+  // Re-init dynamic content
+  renderBookshelf();
+  updateWorldClocks();
+  if(document.getElementById('notes')){
+    const el=document.getElementById('notes');
+    el.value=S.notes;
+    el.addEventListener('input',()=>{S.notes=el.value;save();});
+  }
+  renderCountdowns();
+  renderBookmarks();
+  showQuote();
+  const cb=document.getElementById('currency-base-label');
+  if(cb) cb.textContent=`base ${S.currencyBase}`;
+  renderCurrencyFromCache();
+}
+
+// ══════════════════════════════════════════════════════════════
+// DRAG & DROP WIDGET REORDER — only active in arrange mode
+// ══════════════════════════════════════════════════════════════
+let dragSrc=null;
+let arrangeMode=false;
+
+function toggleArrangeMode(){
+  arrangeMode=!arrangeMode;
+  document.body.classList.toggle('arrange-mode', arrangeMode);
+  // Enable/disable draggable on all widgets
+  document.querySelectorAll('.widget').forEach(w=>{
+    w.setAttribute('draggable', arrangeMode ? 'true' : 'false');
+  });
+  // Update button label
+  const btn=document.getElementById('arrange-btn');
+  if(btn){
+    btn.textContent=arrangeMode?'✓ Done arranging':'⠿ Arrange widgets';
+    btn.classList.toggle('on', arrangeMode);
+  }
+}
+
+function initDragDrop(){
+  const widgets=document.querySelectorAll('.widget');
+  widgets.forEach(w=>{
+    // Start disabled
+    w.setAttribute('draggable','false');
+
+    w.addEventListener('dragstart',e=>{
+      if(!arrangeMode){e.preventDefault();return;}
+      dragSrc=w;
+      setTimeout(()=>w.classList.add('dragging'),0);
+      e.dataTransfer.effectAllowed='move';
+    });
+    w.addEventListener('dragend',()=>{
+      w.classList.remove('dragging');
+      document.querySelectorAll('.widget').forEach(ww=>ww.classList.remove('drag-over'));
+      dragSrc=null;
+      saveWidgetLayout();
+    });
+    w.addEventListener('dragover',e=>{
+      if(!arrangeMode||!dragSrc||dragSrc===w) return;
+      e.preventDefault();
+      w.classList.add('drag-over');
+      const col=w.parentElement;
+      const rect=w.getBoundingClientRect();
+      if(e.clientY<rect.top+rect.height/2) col.insertBefore(dragSrc,w);
+      else col.insertBefore(dragSrc,w.nextSibling);
+    });
+    w.addEventListener('dragleave',()=>w.classList.remove('drag-over'));
+    w.addEventListener('drop',e=>{e.preventDefault();w.classList.remove('drag-over');});
+  });
+}
+
+function saveWidgetLayout(){
+  const layout=[];
+  [0,1].forEach(ci=>{
+    const col=document.getElementById('col-'+ci);
+    [...col.querySelectorAll('.widget')].forEach((w,order)=>{
+      layout.push({id:w.dataset.wid,col:ci,order,vis:!w.classList.contains('hidden')});
+    });
+  });
+  S.widgetLayout=layout;
+  save();
+}
+
+// ══════════════════════════════════════════════════════════════
+// WIDGET VISIBILITY PANEL
+// ══════════════════════════════════════════════════════════════
+function buildWidgetPanel(){
+  const layout=getLayout();
+  const wrap=document.getElementById('widget-toggles');
+  wrap.innerHTML='';
+  WIDGET_DEFS.forEach(def=>{
+    const item=layout.find(l=>l.id===def.id)||{vis:def.vis};
+    const on=item.vis;
+    const div=document.createElement('div');
+    div.className='wtoggle'+(on?' on':'');
+    div.innerHTML=`<span class="wtoggle-label">${def.label}</span><div class="tog${on?' on':''}"></div>`;
+    div.onclick=()=>{
+      const lyt=getLayout();
+      const it=lyt.find(l=>l.id===def.id);
+      if(it) it.vis=!it.vis;
+      S.widgetLayout=lyt; save();
+      // Toggle in DOM without full rebuild
+      const wEl=document.querySelector(`.widget[data-wid="${def.id}"]`);
+      if(wEl) wEl.classList.toggle('hidden',!it.vis);
+      buildWidgetPanel();
+    };
+    wrap.appendChild(div);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════════════════════════
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme',S.theme);
+  const ac=ACCENTS[S.accent]||ACCENTS.Gold;
+  const r=document.documentElement;
+  r.style.setProperty('--accent',ac.a);
+  r.style.setProperty('--accent-rgb',ac.r);
+  r.style.setProperty('--accent2',ac.a2);
+  r.style.setProperty('--accent3',ac.a3);
+  const light=S.theme==='light';
+  if(S.bg==='Grid'){
+    document.body.style.backgroundImage='linear-gradient(var(--grid-color) 1px,transparent 1px),linear-gradient(90deg,var(--grid-color) 1px,transparent 1px)';
+    document.body.style.backgroundSize='36px 36px';
+  }else if(S.bg==='Dots'){
+    document.body.style.backgroundImage='radial-gradient(circle,var(--grid-color) 1.5px,transparent 1.5px)';
+    document.body.style.backgroundSize='22px 22px';
+  }else{document.body.style.backgroundImage='';document.body.style.backgroundSize='';}
+  const fonts={serif:"'Instrument Serif',Georgia,serif",mono:"'Geist Mono',monospace",slab:"'Courier New',Courier,monospace"};
+  document.body.style.fontFamily=fonts[S.font]||fonts.serif;
+  document.getElementById('mb-dark')?.classList.toggle('on',S.theme==='dark');
+  document.getElementById('mb-light')?.classList.toggle('on',S.theme==='light');
+  document.querySelectorAll('.ac-sw').forEach(el=>el.classList.toggle('on',el.dataset.k===S.accent));
+  document.querySelectorAll('.bg-sw').forEach(el=>el.classList.toggle('on',el.dataset.k===S.bg));
+  const fs=document.getElementById('font-sel');if(fs)fs.value=S.font;
+}
+function buildThemePanel(){
+  const ag=document.getElementById('accent-grid');ag.innerHTML='';
+  Object.entries(ACCENTS).forEach(([k,v])=>{
+    const el=document.createElement('div');el.className='swatch ac-sw'+(S.accent===k?' on':'');
+    el.dataset.k=k;el.style.background=v.a;el.title=k;
+    el.onclick=()=>{S.accent=k;save();applyTheme();};ag.appendChild(el);
+  });
+  const bg=document.getElementById('bg-grid');bg.innerHTML='';
+  BG_OPTS.forEach(label=>{
+    const el=document.createElement('div');el.className='swatch bg-sw'+(S.bg===label?' on':'');
+    el.dataset.k=label;el.style.cssText='background:var(--surface2);border:1px solid var(--border2);font-size:10px;color:var(--text2);';
+    el.textContent=label;el.onclick=()=>{S.bg=label;save();applyTheme();};bg.appendChild(el);
+  });
+  const fs=document.getElementById('font-sel');if(fs)fs.value=S.font;
+}
+function setMode(m){S.theme=m;save();applyTheme();}
+function setFont(v){S.font=v;save();applyTheme();}
+
+// ══════════════════════════════════════════════════════════════
+// CLOCK
+// ══════════════════════════════════════════════════════════════
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function clock(){
+  const n=new Date();
+  document.getElementById('clock').innerHTML=`${p(n.getHours())}<span class="sep">:</span>${p(n.getMinutes())}<span class="sep">:</span>${p(n.getSeconds())}`;
+  document.getElementById('date-line').textContent=`${DAYS[n.getDay()]} · ${n.getDate()} ${MONTHS[n.getMonth()]} ${n.getFullYear()}`;
+  const hr=n.getHours();
+  document.getElementById('greeting').textContent=hr<5?'Still at it…':hr<12?'Good morning.':hr<17?'Good afternoon.':hr<22?'Good evening.':'Late night.';
+}
+function updateWorldClocks(){
+  const wrap=document.getElementById('wclocks');if(!wrap)return;
+  wrap.innerHTML=S.worldClocks.map(z=>{
+    try{
+      const now=new Date();
+      const time=now.toLocaleTimeString('en-GB',{timeZone:z.tz,hour:'2-digit',minute:'2-digit',hour12:false});
+      const date=now.toLocaleDateString('en-GB',{timeZone:z.tz,weekday:'short',month:'short',day:'numeric'});
+      return`<div class="wclock-item"><div class="wclock-city">${x(z.city)}</div><div class="wclock-time">${time}</div><div class="wclock-date">${date}</div></div>`;
+    }catch(e){return`<div class="wclock-item"><div class="wclock-city">${x(z.city)}</div><div class="wclock-time">—</div><div class="wclock-date">Invalid TZ</div></div>`;}
+  }).join('');
+}
+function p(n){return String(n).padStart(2,'0');}
+
+// ══════════════════════════════════════════════════════════════
+// SEARCH & QUICK LINKS
+// ══════════════════════════════════════════════════════════════
+function doSearch(){
+  const q=document.getElementById('srch').value.trim();if(!q)return;
+  window.location.href=/^(https?:\/\/|www\.)/.test(q)?q:`https://www.google.com/search?q=${encodeURIComponent(q)}`;
+}
+function renderQL(){
+  document.getElementById('ql-bar').innerHTML=S.links.map((l,i)=>
+    `<a class="quick-link" href="${x(l.url)}"><span>${l.icon||'→'}</span>${x(l.label)}<button class="ql-del" onclick="event.preventDefault();delLink(${i})">✕</button></a>`
+  ).join('');
+}
+function buildQLPanel(){
+  const list=document.getElementById('ql-list');list.innerHTML='';
+  S.links.forEach((l,i)=>{
+    const row=document.createElement('div');row.className='edit-row';
+    row.innerHTML=`<div class="field" style="flex:0 0 36px;margin:0"><input type="text" value="${x(l.icon||'')}" id="qi-${i}" style="text-align:center;padding:8px 4px;width:36px"></div><div class="field" style="flex:1;margin:0"><input type="text" value="${x(l.label)}" id="ql-${i}" placeholder="Label"></div><div class="field" style="flex:2;margin:0"><input type="text" value="${x(l.url)}" id="qu-${i}" placeholder="https://…"></div><button class="del-btn" onclick="removeQLRow(${i})">✕</button>`;
+    list.appendChild(row);
+  });
+}
+function addQLRow(){S.links.push({label:'',url:'',icon:'→'});buildQLPanel();}
+function removeQLRow(i){S.links.splice(i,1);buildQLPanel();}
+function delLink(i){S.links.splice(i,1);save();renderQL();}
+function saveLinks(){
+  S.links=Array.from({length:S.links.length},(_,i)=>({icon:document.getElementById(`qi-${i}`)?.value||'→',label:document.getElementById(`ql-${i}`)?.value||'',url:document.getElementById(`qu-${i}`)?.value||'#'})).filter(l=>l.label||l.url);
+  save();renderQL();closePanel('p-links');
+}
+
+// ══════════════════════════════════════════════════════════════
+// WEATHER
+// ══════════════════════════════════════════════════════════════
+function cvtTemp(c){return S.unit==='F'?Math.round(c*9/5+32)+'°F':Math.round(c)+'°C';}
+async function fetchWeather(){
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${S.lat}&longitude=${S.lon}&current=temperature_2m,weathercode&timezone=auto`);
+    const d=await r.json();
+    const temp=d.current.temperature_2m,code=d.current.weathercode;
+    document.getElementById('w-icon').textContent=WMO_ICONS[code]||'🌡';
+    document.getElementById('w-temp').textContent=cvtTemp(temp);
+    document.getElementById('w-desc').textContent=WMO_DESC[code]||'Weather';
+    S._wxC=temp;S._wxCode=code;
+  }catch(e){document.getElementById('w-temp').textContent='—';document.getElementById('w-desc').textContent='Unavailable';}
+}
+function ilmUrl(c){const k=c.toLowerCase().trim();const sl=FI_SLUGS[k]||(c.toLowerCase().replace(/ä/g,'a').replace(/ö/g,'o').replace(/å/g,'a').replace(/\s+/g,'-'));return`https://www.ilmatieteenlaitos.fi/saa/${sl}`;}
+async function saveWeather(){
+  const city=document.getElementById('wi-city').value.trim();
+  const unit=document.getElementById('wi-unit').value;
+  if(city)S.city=city;S.unit=unit;
+  const st=document.getElementById('wx-status');st.className='wx-status';st.textContent='Locating…';
+  try{
+    const g=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(S.city)}&count=1&language=en&format=json`);
+    const gd=await g.json();
+    if(gd.results?.length){S.lat=gd.results[0].latitude;S.lon=gd.results[0].longitude;st.textContent=`Found: ${gd.results[0].name}, ${gd.results[0].country}`;}
+    else{st.className='wx-status err';st.textContent='City not found';}
+  }catch(e){st.className='wx-status err';st.textContent='Geocoding failed';}
+  document.getElementById('w-pill').href=ilmUrl(S.city);
+  save();await fetchWeather();setTimeout(()=>closePanel('p-weather'),700);
+}
+
+// ══════════════════════════════════════════════════════════════
+// BOOKSHELF
+// ══════════════════════════════════════════════════════════════
+let shelfEdit=false;
+function renderBookshelf(){
+  const shelf=document.getElementById('bookshelf');if(!shelf)return;
+  shelf.innerHTML=S.books.map(b=>`
+    <a class="book-card" href="${b.url?x(b.url):'#'}" ${!b.url?'onclick="return false"':''}>
+      <div class="book-cover"><div class="book-spine"></div>${b.img?`<img src="${x(b.img)}" alt="" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`:''}<div class="book-ph" ${b.img?'style="display:none"':''}>${b.emoji||'📗'}</div></div>
+      <div class="book-title">${x(b.title)}</div>
+      <button class="book-del" onclick="event.preventDefault();event.stopPropagation();delBook(${b.id})">✕</button>
+    </a>`).join('')+
+    `<div class="book-add" onclick="openPanel('p-book')"><div class="book-add-cover">+</div><div class="book-add-lbl">Add book</div></div>`;
+  shelf.classList.toggle('edit',shelfEdit);
+}
+function addBook(){
+  const title=document.getElementById('bi-title').value.trim();if(!title)return;
+  S.books.push({id:Date.now(),title,url:document.getElementById('bi-url').value.trim(),img:document.getElementById('bi-img').value.trim(),emoji:document.getElementById('bi-emoji').value.trim()||'📗'});
+  save();renderBookshelf();closePanel('p-book');
+  ['bi-title','bi-url','bi-img'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('bi-emoji').value='📗';
+}
+function delBook(id){S.books=S.books.filter(b=>b.id!==id);save();renderBookshelf();}
+function toggleShelfEdit(){
+  shelfEdit=!shelfEdit;
+  const btn=document.getElementById('shelf-edit-btn');if(!btn)return;
+  btn.textContent=shelfEdit?'Done':'Edit';btn.classList.toggle('on',shelfEdit);
+  document.getElementById('bookshelf')?.classList.toggle('edit',shelfEdit);
+}
+
+// ══════════════════════════════════════════════════════════════
+// NEWS
+// ══════════════════════════════════════════════════════════════
+function buildRssPanel(){
+  const list=document.getElementById('rss-list');list.innerHTML='';
+  S.rss.forEach((f,i)=>{
+    const row=document.createElement('div');row.className='edit-row';
+    row.innerHTML=`<div class="field" style="flex:0 0 70px;margin:0"><input type="text" value="${x(f.label)}" id="rl-${i}" placeholder="Label"></div><div class="field" style="flex:1;margin:0"><input type="text" value="${x(f.url)}" id="ru-${i}" placeholder="RSS URL"></div><button class="del-btn" onclick="removeRssRow(${i})">✕</button>`;
+    list.appendChild(row);
+  });
+}
+function addRssRow(){S.rss.push({label:'Feed',url:''});buildRssPanel();}
+function removeRssRow(i){S.rss.splice(i,1);buildRssPanel();}
+function saveRss(){
+  S.rss=Array.from({length:S.rss.length},(_,i)=>({label:document.getElementById(`rl-${i}`)?.value||'Feed',url:document.getElementById(`ru-${i}`)?.value||''})).filter(f=>f.url);
+  save();loadNews();closePanel('p-rss');
+}
+async function loadNews(){
+  const list=document.getElementById('news-list');if(!list)return;
+  list.innerHTML='<div class="news-status">Loading…</div>';
+  const items=[];
+  for(const feed of S.rss){
+    if(!feed.url)continue;
+    try{
+      // No count param — free tier
+      const api=`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
+      const r=await fetch(api);const d=await r.json();
+      if(d.status==='ok'&&d.items){
+        d.items.slice(0,5).forEach(it=>items.push({source:feed.label,title:it.title,link:it.link,date:it.pubDate?new Date(it.pubDate):null}));
+      }
+    }catch(e){}
+  }
+  if(!items.length){list.innerHTML='<div class="news-status err">Could not load feeds. Check Sources.</div>';return;}
+  items.sort((a,b)=>(b.date||0)-(a.date||0));
+  list.innerHTML=items.slice(0,14).map(it=>
+    `<a class="news-item" href="${x(it.link)}"><div class="news-source">${x(it.source)}</div><div><div class="news-title">${x(it.title)}</div>${it.date?`<div class="news-date">${it.date.toLocaleDateString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}</div></a>`
+  ).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// WORLD CLOCK SETTINGS
+// ══════════════════════════════════════════════════════════════
+function buildWcPanel(){
+  const list=document.getElementById('wc-list');list.innerHTML='';
+  S.worldClocks.forEach((z,i)=>{
+    const row=document.createElement('div');row.className='edit-row';
+    row.innerHTML=`<div class="field" style="flex:1;margin:0"><input type="text" value="${x(z.city)}" id="wcc-${i}" placeholder="City name"></div><div class="field" style="flex:1.5;margin:0"><input type="text" value="${x(z.tz)}" id="wcz-${i}" placeholder="Europe/Helsinki"></div><button class="del-btn" onclick="removeWcRow(${i})">✕</button>`;
+    list.appendChild(row);
+  });
+}
+function addWcRow(){S.worldClocks.push({city:'',tz:''});buildWcPanel();}
+function removeWcRow(i){S.worldClocks.splice(i,1);buildWcPanel();}
+function saveWorldClock(){
+  S.worldClocks=Array.from({length:S.worldClocks.length},(_,i)=>({city:document.getElementById(`wcc-${i}`)?.value||'',tz:document.getElementById(`wcz-${i}`)?.value||''})).filter(z=>z.city&&z.tz);
+  save();updateWorldClocks();closePanel('p-worldclock');
+}
+
+// ══════════════════════════════════════════════════════════════
+// CURRENCY
+// ══════════════════════════════════════════════════════════════
+let _currencyRates=null;
+function buildCurrencyPanel(){
+  const sel=document.getElementById('cur-base');if(sel)sel.value=S.currencyBase;
+  const chips=document.getElementById('currency-chips');if(!chips)return;
+  chips.innerHTML=ALL_CURRENCIES.filter(c=>c!==S.currencyBase).map(c=>
+    `<div class="tag-chip${S.currencies.includes(c)?' sel':''}" onclick="toggleCurrency('${c}')">${c}</div>`
+  ).join('');
+}
+function toggleCurrency(c){
+  if(S.currencies.includes(c))S.currencies=S.currencies.filter(cc=>cc!==c);
+  else S.currencies.push(c);
+  buildCurrencyPanel();
+}
+function saveCurrency(){
+  S.currencyBase=document.getElementById('cur-base')?.value||'EUR';
+  save();
+  const cb=document.getElementById('currency-base-label');if(cb)cb.textContent=`base ${S.currencyBase}`;
+  fetchCurrency();closePanel('p-currency');
+}
+async function fetchCurrency(){
+  const el=document.getElementById('currency-list');if(!el)return;
+  try{
+    const r=await fetch(`https://open.er-api.com/v6/latest/${S.currencyBase}`);
+    const d=await r.json();
+    if(d.result!=='success')throw new Error();
+    _currencyRates=d.rates;
+    renderCurrencyFromCache();
+  }catch(e){if(el)el.innerHTML='<div class="news-status err">Rates unavailable</div>';}
+}
+function renderCurrencyFromCache(){
+  const el=document.getElementById('currency-list');if(!el)return;
+  if(!_currencyRates){el.innerHTML='<div class="news-status">Loading…</div>';return;}
+  el.innerHTML=S.currencies.filter(c=>c!==S.currencyBase).map(code=>{
+    const rate=_currencyRates[code];if(!rate)return'';
+    const fmt=code==='JPY'||code==='KRW'?rate.toFixed(0):rate.toFixed(4);
+    return`<div class="currency-row"><div class="currency-pair">${S.currencyBase} / ${code}</div><div class="currency-val">${fmt}</div></div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// COUNTDOWN
+// ══════════════════════════════════════════════════════════════
+function renderCountdowns(){
+  const wrap=document.getElementById('countdowns-wrap');if(!wrap)return;
+  if(!S.countdowns.length){wrap.innerHTML=`<div style="font-family:var(--font-mono);font-size:12px;color:var(--text3);text-align:center;padding:8px 0">No countdowns yet</div>`;return;}
+  wrap.innerHTML=S.countdowns.map((cd,i)=>{
+    const target=new Date(cd.date+'T00:00:00');
+    const now=new Date();now.setHours(0,0,0,0);
+    const diff=Math.max(0,Math.floor((target-now)/(86400000)));
+    return`<div class="countdown-item"><div class="countdown-name">${x(cd.label)}</div><div class="countdown-right"><div style="display:flex;align-items:baseline;gap:4px"><div class="countdown-val">${diff}</div><div class="countdown-unit">days</div></div></div><button onclick="delCountdown(${i})" style="background:none;border:none;color:var(--text3);font-size:11px;margin-left:8px;transition:color .15s" onmouseover="this.style.color='var(--accent3)'" onmouseout="this.style.color='var(--text3)'">✕</button></div>`;
+  }).join('');
+}
+function addCountdown(){
+  const label=document.getElementById('cd-label').value.trim();
+  const date=document.getElementById('cd-date').value;
+  if(!label||!date)return;
+  S.countdowns.push({label,date});save();renderCountdowns();closePanel('p-countdown');
+  document.getElementById('cd-label').value='';document.getElementById('cd-date').value='';
+}
+function delCountdown(i){S.countdowns.splice(i,1);save();renderCountdowns();}
+
+// ══════════════════════════════════════════════════════════════
+// BOOKMARKS
+// ══════════════════════════════════════════════════════════════
+let bmEdit=false;
+function renderBookmarks(){
+  const list=document.getElementById('bookmark-list');if(!list)return;
+  list.classList.toggle('edit',bmEdit);
+  if(!S.bookmarks.length){list.innerHTML=`<div style="font-family:var(--font-mono);font-size:12px;color:var(--text3);padding:6px 0">No bookmarks yet</div>`;return;}
+  list.innerHTML=S.bookmarks.map((b,i)=>`
+    <a class="bookmark-item" href="${x(b.url)}">
+      <span class="bookmark-icon">${b.icon||'🔗'}</span>
+      <div style="flex:1;min-width:0">
+        <div class="bookmark-label">${x(b.label)}</div>
+        <div class="bookmark-url">${x(b.url)}</div>
+      </div>
+      <button class="bookmark-del" onclick="event.preventDefault();delBookmark(${i})">✕</button>
+    </a>`).join('');
+}
+function addBookmark(){
+  const label=document.getElementById('bm-label').value.trim();
+  const url=document.getElementById('bm-url').value.trim();
+  if(!label||!url)return;
+  S.bookmarks.push({label,url,icon:document.getElementById('bm-icon').value.trim()||'🔗'});
+  save();renderBookmarks();closePanel('p-bookmark');
+  ['bm-label','bm-url'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('bm-icon').value='🔗';
+}
+function delBookmark(i){S.bookmarks.splice(i,1);save();renderBookmarks();}
+function toggleBmEdit(){
+  bmEdit=!bmEdit;
+  const btn=document.getElementById('bm-edit-btn');if(btn){btn.textContent=bmEdit?'Done':'Edit';btn.classList.toggle('on',bmEdit);}
+  renderBookmarks();
+}
+
+// ══════════════════════════════════════════════════════════════
+// QUOTE — local curated list, no API needed
+// ══════════════════════════════════════════════════════════════
+const QUOTES=[
+  {q:'The secret of getting ahead is getting started.',a:'Mark Twain'},
+  {q:'It always seems impossible until it\'s done.',a:'Nelson Mandela'},
+  {q:'In the middle of difficulty lies opportunity.',a:'Albert Einstein'},
+  {q:'The only way to do great work is to love what you do.',a:'Steve Jobs'},
+  {q:'Simplicity is the ultimate sophistication.',a:'Leonardo da Vinci'},
+  {q:'An investment in knowledge pays the best interest.',a:'Benjamin Franklin'},
+  {q:'Life is what happens when you\'re busy making other plans.',a:'John Lennon'},
+  {q:'The future belongs to those who believe in the beauty of their dreams.',a:'Eleanor Roosevelt'},
+  {q:'It is during our darkest moments that we must focus to see the light.',a:'Aristotle'},
+  {q:'Logic will get you from A to B. Imagination will take you everywhere.',a:'Albert Einstein'},
+  {q:'A room without books is like a body without a soul.',a:'Cicero'},
+  {q:'Be yourself; everyone else is already taken.',a:'Oscar Wilde'},
+  {q:'Not all those who wander are lost.',a:'J.R.R. Tolkien'},
+  {q:'No tree, it is said, can grow to heaven unless its roots reach down to hell.',a:'Carl Jung'},
+  {q:'Whether you think you can or you think you can\'t, you\'re right.',a:'Henry Ford'},
+  {q:'The journey of a thousand miles begins with one step.',a:'Lao Tzu'},
+  {q:'That which does not kill us makes us stronger.',a:'Friedrich Nietzsche'},
+  {q:'Imagination is more important than knowledge.',a:'Albert Einstein'},
+  {q:'To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.',a:'Ralph Waldo Emerson'},
+  {q:'Two roads diverged in a wood, and I took the one less traveled by.',a:'Robert Frost'},
+  {q:'You must be the change you wish to see in the world.',a:'Mahatma Gandhi'},
+  {q:'In the end, it\'s not the years in your life that count. It\'s the life in your years.',a:'Abraham Lincoln'},
+  {q:'The mind is everything. What you think you become.',a:'Buddha'},
+  {q:'Spread love everywhere you go. Let no one ever come to you without leaving happier.',a:'Mother Teresa'},
+  {q:'When you reach the end of your rope, tie a knot in it and hang on.',a:'Franklin D. Roosevelt'},
+  {q:'Always remember that you are absolutely unique. Just like everyone else.',a:'Margaret Mead'},
+  {q:'Do not go where the path may lead; go instead where there is no path and leave a trail.',a:'Ralph Waldo Emerson'},
+  {q:'You will face many defeats in life, but never let yourself be defeated.',a:'Maya Angelou'},
+  {q:'The greatest glory in living lies not in never falling, but in rising every time we fall.',a:'Nelson Mandela'},
+  {q:'In the end, it\'s not the years in your life that count — it\'s the life in your years.',a:'Abraham Lincoln'},
+  {q:'Never let the fear of striking out keep you from playing the game.',a:'Babe Ruth'},
+  {q:'Life is either a daring adventure or nothing at all.',a:'Helen Keller'},
+  {q:'Many of life\'s failures are people who did not realize how close they were to success when they gave up.',a:'Thomas Edison'},
+  {q:'You have brains in your head. You have feet in your shoes. You can steer yourself any direction you choose.',a:'Dr. Seuss'},
+  {q:'If life were predictable it would cease to be life and be without flavor.',a:'Eleanor Roosevelt'},
+  {q:'If you look at what you have in life, you\'ll always have more.',a:'Oprah Winfrey'},
+  {q:'If you set your goals ridiculously high and it\'s a failure, you will fail above everyone else\'s success.',a:'James Cameron'},
+  {q:'Life is not measured by the number of breaths we take, but by the moments that take our breath away.',a:'Maya Angelou'},
+  {q:'If you want to live a happy life, tie it to a goal, not to people or things.',a:'Albert Einstein'},
+  {q:'Never let the fear of striking out keep you from playing the game.',a:'Babe Ruth'},
+  {q:'Money and success don\'t change people; they merely amplify what is already there.',a:'Will Smith'},
+  {q:'Your time is limited, so don\'t waste it living someone else\'s life.',a:'Steve Jobs'},
+  {q:'Not how long, but how well you have lived is the main thing.',a:'Seneca'},
+  {q:'It is not the mountain we conquer, but ourselves.',a:'Edmund Hillary'},
+  {q:'An unexamined life is not worth living.',a:'Socrates'},
+  {q:'Spread love everywhere you go.',a:'Mother Teresa'},
+  {q:'When you change the way you look at things, the things you look at change.',a:'Wayne Dyer'},
+  {q:'We accept the love we think we deserve.',a:'Stephen Chbosky'},
+  {q:'Darkness cannot drive out darkness; only light can do that.',a:'Martin Luther King Jr.'},
+  {q:'We must learn to live together as brothers or perish together as fools.',a:'Martin Luther King Jr.'},
+  {q:'The time is always right to do what is right.',a:'Martin Luther King Jr.'},
+  {q:'Do one thing every day that scares you.',a:'Eleanor Roosevelt'},
+  {q:'Well-behaved women seldom make history.',a:'Laurel Thatcher Ulrich'},
+  {q:'A woman is like a tea bag; you never know how strong it is until it\'s in hot water.',a:'Eleanor Roosevelt'},
+  {q:'I can\'t change the direction of the wind, but I can adjust my sails.',a:'Jimmy Dean'},
+  {q:'It\'s not whether you get knocked down, it\'s whether you get up.',a:'Vince Lombardi'},
+  {q:'To handle yourself, use your head; to handle others, use your heart.',a:'Eleanor Roosevelt'},
+  {q:'Too many of us are not living our dreams because we are living our fears.',a:'Les Brown'},
+  {q:'I have learned over the years that when one\'s mind is made up, this diminishes fear.',a:'Rosa Parks'},
+  {q:'I alone cannot change the world, but I can cast a stone across the water to create many ripples.',a:'Mother Teresa'},
+  {q:'Nothing is impossible; the word itself says I\'m possible.',a:'Audrey Hepburn'},
+  {q:'It does not matter how slowly you go as long as you do not stop.',a:'Confucius'},
+  {q:'Everything you\'ve ever wanted is on the other side of fear.',a:'George Addair'},
+  {q:'Success is not final, failure is not fatal: it is the courage to continue that counts.',a:'Winston Churchill'},
+  {q:'Hardships often prepare ordinary people for an extraordinary destiny.',a:'C.S. Lewis'},
+  {q:'Believe you can and you\'re halfway there.',a:'Theodore Roosevelt'},
+  {q:'We know what we are, but know not what we may be.',a:'William Shakespeare'},
+  {q:'Do not wait to strike till the iron is hot, but make it hot by striking.',a:'William Butler Yeats'},
+  {q:'I am not a product of my circumstances. I am a product of my decisions.',a:'Stephen Covey'},
+  {q:'Every child is an artist. The problem is how to remain an artist once he grows up.',a:'Pablo Picasso'},
+  {q:'You can never cross the ocean until you have the courage to lose sight of the shore.',a:'Christopher Columbus'},
+  {q:'I\'ve learned that people will forget what you said, people will forget what you did, but people will never forget how you made them feel.',a:'Maya Angelou'},
+  {q:'Either you run the day, or the day runs you.',a:'Jim Rohn'},
+  {q:'Whether you think you can or you think you can\'t, you\'re right.',a:'Henry Ford'},
+  {q:'The best time to plant a tree was 20 years ago. The second best time is now.',a:'Chinese Proverb'},
+  {q:'An unexamined life is not worth living.',a:'Socrates'},
+  {q:'Eighty percent of success is showing up.',a:'Woody Allen'},
+  {q:'I attribute my success to this: I never gave or took any excuse.',a:'Florence Nightingale'},
+  {q:'You miss 100% of the shots you don\'t take.',a:'Wayne Gretzky'},
+  {q:'The most common way people give up their power is by thinking they don\'t have any.',a:'Alice Walker'},
+  {q:'The most difficult thing is the decision to act, the rest is merely tenacity.',a:'Amelia Earhart'},
+  {q:'How wonderful it is that nobody need wait a single moment before starting to improve the world.',a:'Anne Frank'},
+  {q:'Life shrinks or expands in proportion to one\'s courage.',a:'Anaïs Nin'},
+  {q:'If you look at what you have in life, you\'ll always have more. If you look at what you don\'t have in life, you\'ll never have enough.',a:'Oprah Winfrey'},
+  {q:'Remember that not getting what you want is sometimes a wonderful stroke of luck.',a:'Dalai Lama'},
+  {q:'You can\'t use up creativity. The more you use, the more you have.',a:'Maya Angelou'},
+  {q:'I have not failed. I\'ve just found 10,000 ways that won\'t work.',a:'Thomas Edison'},
+  {q:'A person who never made a mistake never tried anything new.',a:'Albert Einstein'},
+  {q:'The person who says it cannot be done should not interrupt the person who is doing it.',a:'Chinese Proverb'},
+  {q:'There is only one way to avoid criticism: do nothing, say nothing, and be nothing.',a:'Aristotle'},
+  {q:'The question isn\'t who is going to let me; it\'s who is going to stop me.',a:'Ayn Rand'},
+  {q:'When everything seems to be going against you, remember that the airplane takes off against the wind.',a:'Henry Ford'},
+  {q:'It\'s not the years in your life that count; it\'s the life in your years.',a:'Abraham Lincoln'},
+  {q:'Change your thoughts and you change your world.',a:'Norman Vincent Peale'},
+  {q:'Either write something worth reading or do something worth writing.',a:'Benjamin Franklin'},
+  {q:'Nothing is impossible. The word itself says I\'m possible.',a:'Audrey Hepburn'},
+  {q:'The only way out of the labyrinth of suffering is to forgive.',a:'John Green'},
+  {q:'We are what we repeatedly do. Excellence, then, is not an act, but a habit.',a:'Aristotle'},
+  {q:'Perfection is not attainable, but if we chase perfection we can catch excellence.',a:'Vince Lombardi'},
+  {q:'If you can dream it, you can achieve it.',a:'Zig Ziglar'},
+  {q:'You become what you believe.',a:'Oprah Winfrey'},
+  {q:'The question is not who is going to let me; it\'s who is going to stop me.',a:'Ayn Rand'},
+];
+
+// ══════════════════════════════════════════════════════════════
+// QUOTE — local list + custom quotes, pool-selectable
+// ══════════════════════════════════════════════════════════════
+function getActivePool(){
+  let pool=[];
+  if(S.quotePool.builtin) pool=pool.concat(QUOTES.map(q=>({...q,_src:'builtin'})));
+  if(S.quotePool.custom)  pool=pool.concat(S.customQuotes.map(q=>({...q,_src:'custom'})));
+  if(!pool.length) pool=QUOTES.map(q=>({...q,_src:'builtin'})); // always fallback
+  return pool;
+}
+
+function showQuote(force=false){
+  const qt=document.getElementById('quote-text');
+  const qa=document.getElementById('quote-author');
+  if(!qt||!qa) return;
+  const pool=getActivePool();
+  if(force || S.quoteIdx==null || S.quoteIdx>=pool.length){
+    let next;
+    do { next=Math.floor(Math.random()*pool.length); } while(next===S.quoteIdx && pool.length>1);
+    S.quoteIdx=next;
+    save();
+  }
+  const q=pool[S.quoteIdx];
+  qt.textContent=`"${q.q}"`;
+  qa.textContent=q.a ? `— ${q.a}` : '';
+}
+
+function buildQuotesPanel(){
+  // Pool toggles
+  const pc=document.getElementById('pool-custom-tog');
+  const pb=document.getElementById('pool-builtin-tog');
+  const pct=document.getElementById('pool-custom-toggle');
+  const pbt=document.getElementById('pool-builtin-toggle');
+  if(pc){ pc.classList.toggle('on',!!S.quotePool.custom); pct.classList.toggle('on',!!S.quotePool.custom); }
+  if(pb){ pb.classList.toggle('on',!!S.quotePool.builtin); pbt.classList.toggle('on',!!S.quotePool.builtin); }
+
+  // Count
+  const cnt=document.getElementById('custom-quote-count');
+  if(cnt) cnt.textContent=S.customQuotes.length;
+
+  // List
+  const list=document.getElementById('custom-quote-list');
+  if(!list) return;
+  if(!S.customQuotes.length){
+    list.innerHTML=`<div style="font-family:var(--font-mono);font-size:11px;color:var(--text3);padding:6px 0">No custom quotes yet. Paste some above or add one by one.</div>`;
+    return;
+  }
+  list.innerHTML=S.customQuotes.map((q,i)=>`
+    <div class="cq-item">
+      <div class="cq-text">
+        <div class="cq-q">${x(q.q)}</div>
+        ${q.a?`<div class="cq-a">— ${x(q.a)}</div>`:''}
+      </div>
+      <button class="cq-del" onclick="deleteCustomQuote(${i})">✕</button>
+    </div>`).join('');
+}
+
+function togglePool(which){
+  // Don't allow turning off both
+  const other=which==='custom'?'builtin':'custom';
+  if(S.quotePool[which] && !S.quotePool[other]) return; // keep at least one
+  S.quotePool[which]=!S.quotePool[which];
+  S.quoteIdx=null; // reset so next show picks from new pool
+  save(); buildQuotesPanel(); showQuote();
+}
+
+function importQuotes(){
+  const raw=document.getElementById('quotes-paste').value.trim();
+  if(!raw) return;
+  const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  let added=0;
+  lines.forEach(line=>{
+    // Strip outer quotes if present: "text" — Author  OR  "text" | Author
+    let q='', a='';
+    // Try: anything — Author  or  anything | Author  at the end
+    const sepMatch=line.match(/^(.+?)(?:\s+[—–-]{1,2}\s+|\s*\|\s*)([^—–|\n]+)$/);
+    if(sepMatch){
+      q=sepMatch[1].replace(/^["'"']+|["'"']+$/g,'').trim();
+      a=sepMatch[2].trim();
+    } else {
+      q=line.replace(/^["'"']+|["'"']+$/g,'').trim();
+      a='';
+    }
+    if(q){ S.customQuotes.push({q,a}); added++; }
+  });
+  if(added){
+    save();
+    buildQuotesPanel();
+    document.getElementById('quotes-paste').value='';
+    // Flash feedback
+    const btn=document.querySelector('#p-quotes .pbtn');
+    if(btn){ const orig=btn.textContent; btn.textContent=`✓ Added ${added} quote${added>1?'s':''}`; setTimeout(()=>btn.textContent=orig,2000); }
+  }
+}
+
+function openAddQuote(){
+  const form=document.getElementById('add-quote-form');
+  if(form) form.style.display=form.style.display==='none'?'block':'none';
+}
+
+function addSingleQuote(){
+  const qText=document.getElementById('aq-text').value.trim();
+  const aText=document.getElementById('aq-author').value.trim();
+  if(!qText) return;
+  S.customQuotes.push({q:qText,a:aText});
+  save(); buildQuotesPanel();
+  document.getElementById('aq-text').value='';
+  document.getElementById('aq-author').value='';
+  document.getElementById('add-quote-form').style.display='none';
+}
+
+function deleteCustomQuote(i){
+  S.customQuotes.splice(i,1);
+  if(S.quoteIdx!=null) S.quoteIdx=null; // reset so display refreshes cleanly
+  save(); buildQuotesPanel(); showQuote();
+}
+
+function clearCustomQuotes(){
+  if(!S.customQuotes.length) return;
+  S.customQuotes=[];
+  S.quoteIdx=null;
+  save(); buildQuotesPanel(); showQuote();
+}
+
+// ══════════════════════════════════════════════════════════════
+// POMODORO
+// ══════════════════════════════════════════════════════════════
+let pomoRunning=false,pomoMode='focus',pomoLeft=25*60,pomoTotal=25*60,pomoInterval=null;
+const POMO_T={focus:25*60,short:5*60,long:15*60};
+function setPomoMode(m){
+  if(pomoRunning){clearInterval(pomoInterval);pomoRunning=false;}
+  pomoMode=m;pomoLeft=POMO_T[m];pomoTotal=pomoLeft;
+  document.querySelectorAll('.pomo-mode').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pm-'+m)?.classList.add('on');
+  document.getElementById('pomo-start').textContent='Start';
+  renderPomo();
+}
+function pomoToggle(){
+  pomoRunning=!pomoRunning;
+  const btn=document.getElementById('pomo-start');
+  btn.textContent=pomoRunning?'Pause':'Resume';
+  if(pomoRunning){pomoInterval=setInterval(()=>{pomoLeft--;if(pomoLeft<=0){clearInterval(pomoInterval);pomoRunning=false;btn.textContent='Start';pomoLeft=0;}renderPomo();},1000);}
+  else clearInterval(pomoInterval);
+}
+function pomoReset(){clearInterval(pomoInterval);pomoRunning=false;pomoLeft=POMO_T[pomoMode];pomoTotal=pomoLeft;document.getElementById('pomo-start').textContent='Start';renderPomo();}
+function renderPomo(){
+  const el=document.getElementById('pomo-time');if(!el)return;
+  el.textContent=`${p(Math.floor(pomoLeft/60))}:${p(pomoLeft%60)}`;
+  el.className='pomo-time'+(pomoMode!=='focus'?' rest':'');
+  const bar=document.getElementById('pomo-bar');if(bar){bar.style.width=(pomoLeft/pomoTotal*100)+'%';bar.style.background=pomoMode==='focus'?'var(--accent)':'var(--accent2)';}
+}
+
+// ══════════════════════════════════════════════════════════════
+// PANELS
+// ══════════════════════════════════════════════════════════════
+function openPanel(id){
+  if(id==='p-theme')    buildThemePanel();
+  if(id==='p-links')    buildQLPanel();
+  if(id==='p-rss')      buildRssPanel();
+  if(id==='p-widgets')  buildWidgetPanel();
+  if(id==='p-worldclock') buildWcPanel();
+  if(id==='p-quotes')   buildQuotesPanel();
+  if(id==='p-currency') buildCurrencyPanel();
+  if(id==='p-weather'){
+    document.getElementById('wi-city').value=S.city;
+    document.getElementById('wi-unit').value=S.unit;
+    document.getElementById('wx-status').textContent='Powered by Open-Meteo — free, no key needed';
+    document.getElementById('wx-status').className='wx-status';
+  }
+  document.getElementById(id)?.classList.add('open');
+}
+function closePanel(id){document.getElementById(id)?.classList.remove('open');}
+
+// ══════════════════════════════════════════════════════════════
+// CANVAS — clean particle dots only, no blurry halos/strokes
+// ══════════════════════════════════════════════════════════════
+function initCanvas(){
+  const canvas=document.getElementById('bg-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H;
+  const pts=[];
+  for(let i=0;i<38;i++){
+    pts.push({x:Math.random()*1920,y:Math.random()*1080,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()*1.3+.4,o:Math.random()*.28+.07});
+  }
+  function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const dark=document.documentElement.getAttribute('data-theme')==='dark';
+    const c=dark?'180,160,120':'80,55,30';
+    pts.forEach(pt=>{
+      pt.x+=pt.vx;pt.y+=pt.vy;
+      if(pt.x<0)pt.x=W;if(pt.x>W)pt.x=0;if(pt.y<0)pt.y=H;if(pt.y>H)pt.y=0;
+      ctx.beginPath();ctx.arc(pt.x,pt.y,pt.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${c},${pt.o})`;ctx.fill();
+    });
+    // Clean connection lines only
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<110){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(${c},${.018*(1-dist/110)})`;ctx.lineWidth=.5;ctx.stroke();}
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+// ══════════════════════════════════════════════════════════════
+// CURSOR
+// ══════════════════════════════════════════════════════════════
+function initCursor(){
+  const cur=document.getElementById('cur');
+  const ring=document.getElementById('cur-ring');
+  let rx=0,ry=0,cx=window.innerWidth/2,cy=window.innerHeight/2;
+  document.addEventListener('mousemove',e=>{
+    cx=e.clientX;cy=e.clientY;
+    cur.style.transform=`translate(calc(${cx}px - 50%), calc(${cy}px - 50%))`;
+  });
+  (function anim(){
+    rx+=(cx-rx)*.28;ry+=(cy-ry)*.28;
+    ring.style.transform=`translate(calc(${rx}px - 50%), calc(${ry}px - 50%))`;
+    requestAnimationFrame(anim);
+  })();
+}
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+function x(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+init();
+</script>
+</body>
+</html>
