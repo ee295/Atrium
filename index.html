@@ -2465,6 +2465,8 @@
         initCanvas();
         initCursor();
 
+        document.getElementById("w-pill").href = ilmUrl(S.city);
+
         document.querySelectorAll(".overlay").forEach((o) =>
           o.addEventListener("click", (e) => {
             if (e.target === o) closePanel(o.id);
@@ -3110,16 +3112,14 @@
             const r = await fetch(api);
             const d = await r.json();
             if (d.status === "ok" && d.items) {
-              d.items
-                .slice(0, 5)
-                .forEach((it) =>
-                  items.push({
-                    source: feed.label,
-                    title: it.title,
-                    link: it.link,
-                    date: it.pubDate ? new Date(it.pubDate) : null,
-                  }),
-                );
+              d.items.slice(0, 5).forEach((it) =>
+                items.push({
+                  source: feed.label,
+                  title: it.title,
+                  link: it.link,
+                  date: it.pubDate ? new Date(it.pubDate) : null,
+                }),
+              );
             }
           } catch (e) {}
         }
